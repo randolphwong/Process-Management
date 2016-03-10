@@ -1,6 +1,12 @@
 #include "proc_management.h"
 
-int parent_done(struct node *graph, int id) {
+/**
+ * parent_done - checks the status of all the parent of the given node
+ *
+ * Returns 1 if all parent's status is FINISHED, and 0 otherwise.
+ */
+int parent_done(struct node *graph, int id)
+{
     int i;
     for (i = 0; i < graph[id].parent_count; i++) {
         if (graph[graph[id].parent[i]].status != FINISHED) return 0;
@@ -8,7 +14,12 @@ int parent_done(struct node *graph, int id) {
     return 1;
 }
 
-void execproc(struct node *proc) {
+/**
+ * execproc - opens the input and output file for the corresponding program and
+ * executes it with execvp
+ */
+void execproc(struct node *proc)
+{
     struct Command *cmd;
     char *args[MAX_CHILDREN * 256];
     int i = 0;
@@ -44,21 +55,29 @@ void execproc(struct node *proc) {
     }
 }
 
-void mutex_unlock() {
+void mutex_unlock()
+{
     int s;
     s = pthread_mutex_unlock(&lock);
     if (s != 0)
         handle_error_en(s, "pthread_mutex_unlock");
 }
 
-void mutex_lock() {
+void mutex_lock()
+{
     int s;
     s = pthread_mutex_lock(&lock);
     if (s != 0)
         handle_error_en(s, "pthread_mutex_lock");
 }
 
-int check_status(int *status) {
+/**
+ * check_status - checks the status that is updated by wait(2)
+ *
+ * Returns 0 on a normal exit by the program, and -1 otherwise.
+ */
+int check_status(int *status)
+{
     int stat = -1;
 
     if (WIFEXITED(*status))
@@ -67,7 +86,20 @@ int check_status(int *status) {
     return stat;
 }
 
-void *proc_routine(void *arg) {
+/* used as argument for proc_routine */
+struct thread_arg {
+    struct node *graph;
+    int id;
+};
+
+/**
+ * proc_routine - a thread routine that:
+ * 1. waits for the specified process (in the argument)
+ * 2. create the processes for all children that is ready and then
+ * 3. recursively create new threads (proc_routine) to wait for the child.
+ */
+void *proc_routine(void *arg)
+{
     struct node *graph = ((struct thread_arg *)arg)->graph;
     struct node *proc = &graph[((struct thread_arg *)arg)->id];
     struct node *child;
@@ -132,7 +164,12 @@ void *proc_routine(void *arg) {
     return NULL;
 }
 
-void startproc(struct node *graph) {
+/**
+ * startproc - create a new process for node 0 and create a new thread
+ * (proc_routine) to wait for it.
+ */
+void startproc(struct node *graph)
+{
     int s;
     pid_t pid;
     pthread_t proc_thread;

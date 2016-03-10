@@ -1,6 +1,12 @@
 #include "graph.h"
 
-int is_singlerooted(struct node *graph, int sz) {
+/**
+ * is_singlerooted - determines whether a graph is singly rooted
+ *
+ * returns 1 if a graph is singly rooted, and 0 otherwise.
+ */
+int is_singlerooted(struct node *graph, int sz)
+{
     int root_count = 0;
 
     while (sz--) {
@@ -10,7 +16,13 @@ int is_singlerooted(struct node *graph, int sz) {
 
 }
 
-int has_cycles(struct node *graph, struct node *n, int *visited, int visits) {
+/**
+ * has_cycles - determines whether a graph contains cycles
+ *
+ * returns 1 if a graph contains cycle, and 0 otherwise.
+ */
+int has_cycles(struct node *graph, struct node *n, int *visited, int visits)
+{
     if (contains(n->id, visited, visits)) return 1;
     visited[visits++] = n->id;
 
@@ -24,7 +36,13 @@ int has_cycles(struct node *graph, struct node *n, int *visited, int visits) {
     return ret;
 }
 
-int is_dag(struct node *graph, int sz) {
+/**
+ * is_dag - determines whether a graph is a directed acyclic graph
+ *
+ * returns 1 if a graph is a DAG, and 0 otherwise.
+ */
+int is_dag(struct node *graph, int sz)
+{
     if (sz < 1) return 0;
 
     int i;
