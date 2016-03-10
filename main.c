@@ -1,3 +1,10 @@
+/*
+ * Programming Assignment 1
+ * Author   : Chiew Jun Hao (1001046)
+ * Author   : Wong Wai Kit Randolph (1001043)
+ * Date     : 10/03/2016
+ */
+
 #include <stdio.h>
 
 #include "graph.h"
