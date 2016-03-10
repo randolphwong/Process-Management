@@ -22,22 +22,23 @@ void execproc(struct node *proc)
 {
     struct Command *cmd;
     char *args[MAX_CHILDREN * 256];
+    int tmp_fd;
     int i = 0;
 
     printf("executing process %d\n", proc->id);
     if ((strcmp(proc->input, "stdin")) != 0) {
-        if ((close(fileno(stdin))) < 0)
-            handle_error("close");
-        if ((open(proc->input, O_RDONLY)) < 0)
+        if ((tmp_fd = open(proc->input, O_RDONLY)) < 0)
             handle_error("open");
+        if ((dup2(tmp_fd, fileno(stdin))) < 0)
+            handle_error("dup2");
     }
 
     if ((strcmp(proc->output, "stdout")) != 0) {
-        if ((close(fileno(stdout))) < 0)
-            handle_error("close");
-        if ((open(proc->output, O_WRONLY | O_CREAT | O_TRUNC, 
+        if ((tmp_fd = open(proc->output, O_WRONLY | O_CREAT | O_TRUNC, 
                         S_IRWXU | S_IRWXG | S_IROTH)) < 0)
             handle_error("open");
+        if ((dup2(tmp_fd, fileno(stdout))) < 0)
+            handle_error("dup2");
     }
 
     cmd = makecommand(proc->prog);
