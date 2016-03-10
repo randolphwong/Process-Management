@@ -1,10 +1,3 @@
-/*
- * TODO:
- *  check status of waitpid
- *  if status is not exit success, then exit failure
- *  
- */
-
 #include "proc_management.h"
 
 int parent_done(struct node *graph, int id) {
@@ -65,6 +58,15 @@ void mutex_lock() {
         handle_error_en(s, "pthread_mutex_lock");
 }
 
+int check_status(int *status) {
+    int stat = -1;
+
+    if (WIFEXITED(*status))
+        stat = WEXITSTATUS(*status);
+
+    return stat;
+}
+
 void *proc_routine(void *arg) {
     struct node *graph = ((struct thread_arg *)arg)->graph;
     struct node *proc = &graph[((struct thread_arg *)arg)->id];
@@ -79,6 +81,11 @@ void *proc_routine(void *arg) {
 
     if ((waitpid(proc->pid, &status, 0)) < 0)
         handle_error("waitpid");
+
+    if ((check_status(&status)) != 0) {
+        fprintf(stderr, "process %d terminated abnormally.\n", proc->id);
+        exit(EXIT_FAILURE);
+    }
 
     mutex_lock();
     proc->status = FINISHED;
