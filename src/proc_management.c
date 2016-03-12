@@ -184,7 +184,7 @@ void startproc(struct graph *proc_graph)
     pid_t pid;
     pthread_t proc_threads[proc_graph->root_count];
     struct node *root;
-    struct thread_arg arg;
+    struct thread_arg arg[proc_graph->root_count];
 
     s = pthread_mutex_init(&lock, NULL);
     if (s != 0)
@@ -202,9 +202,9 @@ void startproc(struct graph *proc_graph)
         root->pid = pid;
         root->status = RUNNING;
 
-        arg.proc_graph = proc_graph;
-        arg.id = root->id;
-        s = pthread_create(proc_threads + i, NULL, proc_routine, &arg);
+        arg[i].proc_graph = proc_graph;
+        arg[i].id = root->id;
+        s = pthread_create(proc_threads + i, NULL, proc_routine, &arg[i]);
         if (s != 0)
             handle_error_en(s, "pthread_create");
     }
