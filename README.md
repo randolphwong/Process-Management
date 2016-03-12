@@ -1,5 +1,7 @@
 # Process-Management
 
+Done by: Chiew Jun Hao 1001046, Wong Wai Kit Randolph 1001043
+
 ## Purpose
 - To develop a processmgt.c / processmgt.java program by using processes (fork, exec,
   wait, system) in C or (ProcessBuilder) in java to execute a graph of user programs in
