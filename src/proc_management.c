@@ -1,5 +1,9 @@
 #include "proc_management.h"
 
+/**
+ * handle_proc_error - prints the error message along with the currently
+ * executing process
+ */
 void handle_proc_error(const char *s, int proc_id)
 {
     char err_msg[80];
@@ -7,10 +11,27 @@ void handle_proc_error(const char *s, int proc_id)
     handle_error(err_msg);
 }
 
+void mutex_unlock()
+{
+    int s;
+    s = pthread_mutex_unlock(&lock);
+    if (s != 0)
+        handle_error_en(s, "pthread_mutex_unlock");
+}
+
+void mutex_lock()
+{
+    int s;
+    s = pthread_mutex_lock(&lock);
+    if (s != 0)
+        handle_error_en(s, "pthread_mutex_lock");
+}
+
 /**
  * parent_done - checks the status of all the parent of the given node
  *
- * Returns 1 if all parent's status is FINISHED, and 0 otherwise.
+ * Returns 1 if the status for all the parents of the given node is FINISHED,
+ * and 0 otherwise.
  */
 int parent_done(struct graph *g, int id)
 {
@@ -24,8 +45,11 @@ int parent_done(struct graph *g, int id)
 }
 
 /**
- * execproc - opens the input and output file for the corresponding program and
- * executes it with execvp
+ * execproc - redirects the input and output of the corresponding program if
+ * necessary and executes it with execvp
+ *
+ * error:
+ * 1. the program token was left blank
  */
 void execproc(struct node *proc)
 {
@@ -64,22 +88,6 @@ void execproc(struct node *proc)
         handle_proc_error("execvp", proc->id);
 }
 
-void mutex_unlock()
-{
-    int s;
-    s = pthread_mutex_unlock(&lock);
-    if (s != 0)
-        handle_error_en(s, "pthread_mutex_unlock");
-}
-
-void mutex_lock()
-{
-    int s;
-    s = pthread_mutex_lock(&lock);
-    if (s != 0)
-        handle_error_en(s, "pthread_mutex_lock");
-}
-
 /**
  * check_status - checks the status that is updated by wait(2)
  *
@@ -104,7 +112,7 @@ struct thread_arg {
 /**
  * proc_routine - a thread routine that:
  * 1. waits for the specified process (in the argument)
- * 2. create the processes for all children that is ready and then
+ * 2. fork new processes for all children that is ready and then
  * 3. recursively create new threads (proc_routine) to wait for the child.
  */
 void *proc_routine(void *arg)
@@ -175,8 +183,8 @@ void *proc_routine(void *arg)
 }
 
 /**
- * startproc - create a new process for node 0 and create a new thread
- * (proc_routine) to wait for it.
+ * startproc - fork new processes for all root nodes and create new threads
+ * (proc_routine) to wait for the them.
  */
 void startproc(struct graph *proc_graph)
 {

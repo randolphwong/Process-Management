@@ -2,11 +2,22 @@
 
 #define NODE_LIMIT 2
 
-static void set_node_prog(struct node *n, char *prog_tok) {
+/**
+ * set_node_prog - set the node's corresponding program and arguments
+ */
+static void set_node_prog(struct node *n, char *prog_tok)
+{
     strcpy(n->prog, prog_tok);
 }
 
-static void set_node_input(struct node *n, char *input_tok) {
+/**
+ * set_node_input - set the node's corresponding input
+ *
+ * error:
+ * 1. no input in the input token
+ */
+static void set_node_input(struct node *n, char *input_tok)
+{
     input_tok = strtok(input_tok, " ");
     if (!input_tok) {
         fprintf(stderr, "no input found in process %d.\n", n->id);
@@ -16,7 +27,14 @@ static void set_node_input(struct node *n, char *input_tok) {
     strcpy(n->input, input_tok);
 }
 
-static void set_node_output(struct node *n, char *output_tok) {
+/**
+ * set_node_output - set the node's corresponding output
+ *
+ * error:
+ * 1. no output in the output token
+ */
+static void set_node_output(struct node *n, char *output_tok)
+{
     output_tok = strtok(output_tok, " ");
     if (!output_tok) {
         fprintf(stderr, "no output found in process %d.\n", n->id);
@@ -26,7 +44,15 @@ static void set_node_output(struct node *n, char *output_tok) {
     strcpy(n->output, output_tok);
 }
 
-static void set_node_children(struct node *n, char *child_tok) {
+/**
+ * set_node_children - set the node's corresponding children and child_count
+ *
+ * error:
+ * 1. no children in the children token
+ * 2. invalid children (non number or negative numbers)
+ */
+static void set_node_children(struct node *n, char *child_tok)
+{
     int child_id;
 
     child_tok = strtok(child_tok, " ");
@@ -49,7 +75,14 @@ static void set_node_children(struct node *n, char *child_tok) {
     }
 }
 
-static void set_node_parent(struct graph *g) {
+/**
+ * set_node_parent - set the node's corresponding parent and parent_count
+ *
+ * error:
+ * 1. one of the node has a children whose id cannot be found
+ */
+static void set_node_parent(struct graph *g)
+{
     int i, j;
     struct node *parent;
     struct node *child;
@@ -70,7 +103,11 @@ static void set_node_parent(struct graph *g) {
     }
 }
 
-static void set_graph_roots(struct graph *g) {
+/**
+ * set_graph_roots - set the graph roots and root_count
+ */
+static void set_graph_roots(struct graph *g)
+{
     int i;
     struct node *n;
 
@@ -87,22 +124,23 @@ static void set_graph_roots(struct graph *g) {
     }
 }
 
-static void expand_graph(struct node ***procs, int new_sz) {
+static void expand_graph(struct node ***procs, int new_sz)
+{
     *procs = realloc(*procs, sizeof(**procs) * new_sz);
     if (!*procs)
         handle_error("realloc");
 }
 
-int is_empty_line(const char *s) {
-    if (s == '\0') return 1;
-
-    while (*s != '\0') {
-        if (!isspace(*s++)) return 0;
-    }
-
-    return 1;
-}
-
+/**
+ * makegraph - read the specified file in the argument and creates a graph out
+ * of it
+ * 
+ * Returns a graph on success, and otherwise it will terminate the program.
+ *
+ * error:
+ * 1. missing token (total count of colon delimiter is less than 3)
+ * 2. empty file
+ */
 struct graph *makegraph(const char *filename)
 {
     struct graph *proc_graph = malloc(sizeof(*proc_graph));
@@ -121,10 +159,8 @@ struct graph *makegraph(const char *filename)
     if (!proc_graph)
         handle_error("malloc");
 
-    if(!(fptr = fopen(filename, "r"))){
-        fprintf(stderr,"unable to open %s\n", filename);
-        exit(EXIT_FAILURE);
-    }
+    if(!(fptr = fopen(filename, "r")))
+        handle_error("fopen");
 
     proc_graph->sz = 0;
     max_graph_sz = NODE_LIMIT;
@@ -184,7 +220,11 @@ struct graph *makegraph(const char *filename)
     return proc_graph;
 }
 
-void delgraph(struct graph *g) {
+/**
+ * delgraph - free all memory allocation made by makegraph
+ */
+void delgraph(struct graph *g)
+{
     if(g) {
         free(g->roots);
         free(g->procs);

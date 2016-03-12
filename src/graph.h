@@ -37,7 +37,8 @@ struct graph {
     int root_count;
 };
 
-int graph_has_cycles(struct graph *g, struct node *n, int *visited, int visits);
+void print_graph(struct graph *g);
+
 int has_cycles(struct graph *g);
 int has_roots(struct graph *g);
 int is_valid_graph(struct graph *g);

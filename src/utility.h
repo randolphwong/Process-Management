@@ -13,8 +13,8 @@
        do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 
-void *myalloc(size_t sz);
 int is_number(const char *s);
 int contains(int needle, int *haystack, int sz);
+int is_empty_line(const char *s);
 
 #endif

@@ -12,7 +12,8 @@
 #include "file_parser.h"
 #include "proc_management.h"
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
 
     struct graph *proc_graph;
     char *filename;
@@ -29,7 +30,7 @@ int main(int argc, char **argv) {
     if (is_valid_graph(proc_graph)) {
         startproc(proc_graph);
     } else {
-        fprintf(stderr, "invalid graph (no cycles or unrooted graph allowed).\n");
+        fprintf(stderr, "invalid graph (no cycles are allowed).\n");
     }
 
     delgraph(proc_graph);
