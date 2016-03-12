@@ -1,5 +1,12 @@
 #include "proc_management.h"
 
+void handle_proc_error(const char *s, int proc_id)
+{
+    char err_msg[80];
+    sprintf(err_msg, "[proc %d] %s", proc_id, s);
+    handle_error(err_msg);
+}
+
 /**
  * parent_done - checks the status of all the parent of the given node
  *
@@ -27,35 +34,34 @@ void execproc(struct node *proc)
     int tmp_fd;
     int i = 0;
 
-    printf("executing process %d\n", proc->id);
+    printf("[proc %d] %s < %s > %s\n", proc->id, proc->prog, proc->input, 
+            proc->output);
+
     if ((strcmp(proc->input, "stdin")) != 0) {
         if ((tmp_fd = open(proc->input, O_RDONLY)) < 0)
-            handle_error("open");
+            handle_proc_error("open", proc->id);
         if ((dup2(tmp_fd, fileno(stdin))) < 0)
-            handle_error("dup2");
+            handle_proc_error("dup2", proc->id);
     }
 
     if ((strcmp(proc->output, "stdout")) != 0) {
         if ((tmp_fd = open(proc->output, O_WRONLY | O_CREAT | O_TRUNC, 
                         S_IRWXU | S_IRWXG | S_IROTH)) < 0)
-            handle_error("open");
+            handle_proc_error("open", proc->id);
         if ((dup2(tmp_fd, fileno(stdout))) < 0)
-            handle_error("dup2");
+            handle_proc_error("dup2", proc->id);
     }
 
     cmd = makecommand(proc->prog);
     if (!cmd) {
-        fprintf(stderr, "Invalid program arguments.\n");
-        fprintf(stderr, "Process %d will be terminated.\n", proc->id);
+        fprintf(stderr, "[proc %d] Invalid program arguments.\n", proc->id);
         exit(EXIT_FAILURE);
     }
 
     while ((args[i++] = nextarg(cmd)));
 
-    if ((execvp(args[0], args)) < 0) {
-        fprintf(stderr, "failed to execute process %d\n", proc->id);
-        perror("execlp");
-    }
+    if ((execvp(args[0], args)) < 0)
+        handle_proc_error("execvp", proc->id);
 }
 
 void mutex_unlock()
@@ -115,10 +121,10 @@ void *proc_routine(void *arg)
     pthread_t proc_threads[proc->child_count];
 
     if ((waitpid(proc->pid, &status, 0)) < 0)
-        handle_error("waitpid");
+        handle_proc_error("waitpid", proc->id);
 
     if ((check_status(&status)) != 0) {
-        fprintf(stderr, "process %d terminated abnormally.\n", proc->id);
+        fprintf(stderr, "[proc %d] Process terminated abnormally.\n", proc->id);
         exit(EXIT_FAILURE);
     }
 

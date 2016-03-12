@@ -14,8 +14,11 @@
 
 #include "utility.h"
 #include "graph.h"
-#include "parser.h"
+#include "command.h"
 
+/*
+ * for synchronising threads
+ */
 pthread_mutex_t lock;
 
 int parent_done(struct graph *g, int id); 

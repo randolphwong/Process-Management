@@ -3,7 +3,7 @@
  * corresponds to the tokens (arguments) in the string.
  */
 
-#include "parser.h"
+#include "command.h"
 
 /**
  * nextarg - get the next argument from Command

@@ -32,3 +32,13 @@ int has_cycles(struct graph *g)
 
     return 0;
 }
+
+int has_roots(struct graph *g)
+{
+    return g->root_count > 0;
+}
+
+int is_valid_graph(struct graph *g)
+{
+    return !has_cycles(g) && has_roots(g);
+}
