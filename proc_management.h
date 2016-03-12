@@ -18,11 +18,11 @@
 
 pthread_mutex_t lock;
 
-int parent_done(struct node *graph, int id); 
+int parent_done(struct graph *g, int id); 
 void execproc(struct node *proc); 
 void mutex_unlock(); 
 void mutex_lock(); 
 void *proc_routine(void *arg); 
-void startproc(struct node *graph); 
+void startproc(struct graph *proc_graph); 
 
 #endif

@@ -29,8 +29,15 @@ struct node {
     pid_t pid;
 };
 
-int is_singlerooted(struct node *graph, int sz);
-int has_cycles(struct node *graph, struct node *n, int *visited, int visits);
-int is_dag(struct node *graph, int sz);
+struct graph {
+    struct node **procs;
+    int sz;
+
+    struct node **roots;
+    int root_count;
+};
+
+int graph_has_cycles(struct graph *g, struct node *n, int *visited, int visits);
+int has_cycles(struct graph *g);
 
 #endif

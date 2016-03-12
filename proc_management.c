@@ -5,11 +5,13 @@
  *
  * Returns 1 if all parent's status is FINISHED, and 0 otherwise.
  */
-int parent_done(struct node *graph, int id)
+int parent_done(struct graph *g, int id)
 {
     int i;
-    for (i = 0; i < graph[id].parent_count; i++) {
-        if (graph[graph[id].parent[i]].status != FINISHED) return 0;
+    int parent;
+    for (i = 0; i < g->procs[id]->parent_count; i++) {
+        parent = g->procs[id]->parent[i];
+        if (g->procs[parent]->status != FINISHED) return 0;
     }
     return 1;
 }
@@ -89,7 +91,7 @@ int check_status(int *status)
 
 /* used as argument for proc_routine */
 struct thread_arg {
-    struct node *graph;
+    struct graph *proc_graph;
     int id;
 };
 
@@ -101,8 +103,8 @@ struct thread_arg {
  */
 void *proc_routine(void *arg)
 {
-    struct node *graph = ((struct thread_arg *)arg)->graph;
-    struct node *proc = &graph[((struct thread_arg *)arg)->id];
+    struct graph *proc_graph = ((struct thread_arg *)arg)->proc_graph;
+    struct node *proc = proc_graph->procs[((struct thread_arg *)arg)->id];
     struct node *child;
     struct thread_arg child_args[proc->child_count];
     int s, i;
@@ -126,10 +128,11 @@ void *proc_routine(void *arg)
 
     for (i = 0; i < proc->child_count; i++) {
         child_ready = 0;
-        child = &graph[proc->children[i]];
+        child = proc_graph->procs[proc->children[i]];
 
         mutex_lock();
-        if (parent_done(graph, child->id) && (child->status == INELIGIBLE)) {
+        if (parent_done(proc_graph, child->id) &&
+                (child->status == INELIGIBLE)) {
             child->status = READY;
             child_ready = 1;
         }
@@ -148,7 +151,7 @@ void *proc_routine(void *arg)
         child->status = RUNNING;
         mutex_unlock();
 
-        child_args[i].graph = graph;
+        child_args[i].proc_graph = proc_graph;
         child_args[i].id = child->id;
         s = pthread_create(&proc_threads[exec_count++], NULL, proc_routine,
                 &child_args[i]);
@@ -169,38 +172,42 @@ void *proc_routine(void *arg)
  * startproc - create a new process for node 0 and create a new thread
  * (proc_routine) to wait for it.
  */
-void startproc(struct node *graph)
+void startproc(struct graph *proc_graph)
 {
-    int s;
+    int s, i;
     pid_t pid;
-    pthread_t proc_thread;
+    pthread_t proc_threads[proc_graph->root_count];
+    struct node *root;
     struct thread_arg arg;
-
-    /*
-     * assumes that process 0 is READY by default
-     */
-    if ((pid = fork()) < 0) {
-        handle_error("fork");
-    } else if (pid == 0) {
-        execproc(&graph[0]);
-    }
-
-    graph[0].pid = pid;
-    graph[0].status = RUNNING;
 
     s = pthread_mutex_init(&lock, NULL);
     if (s != 0)
         handle_error_en(s, "pthread_mutex_init");
 
-    arg.graph = graph;
-    arg.id = 0;
-    s = pthread_create(&proc_thread, NULL, proc_routine, &arg);
-    if (s != 0)
-        handle_error_en(s, "pthread_create");
+    for (i = 0; i < proc_graph->root_count; i++) {
+        root = proc_graph->roots[i];
 
-    s = pthread_join(proc_thread, NULL);
-    if (s != 0)
-        handle_error_en(s, "pthread_join");
+        if ((pid = fork()) < 0) {
+            handle_error("fork");
+        } else if (pid == 0) {
+            execproc(proc_graph->roots[i]);
+        }
+
+        root->pid = pid;
+        root->status = RUNNING;
+
+        arg.proc_graph = proc_graph;
+        arg.id = root->id;
+        s = pthread_create(proc_threads + i, NULL, proc_routine, &arg);
+        if (s != 0)
+            handle_error_en(s, "pthread_create");
+    }
+
+    for (i = 0; i < proc_graph->root_count; i++) {
+        s = pthread_join(proc_threads[i], NULL);
+        if (s != 0)
+            handle_error_en(s, "pthread_join");
+    }
 
     s = pthread_mutex_destroy(&lock);
     if (s != 0)
