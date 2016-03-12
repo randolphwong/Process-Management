@@ -14,7 +14,7 @@
 
 
 void *myalloc(size_t sz);
-int is_number(char *argv);
+int is_number(const char *s);
 int contains(int needle, int *haystack, int sz);
 
 #endif
