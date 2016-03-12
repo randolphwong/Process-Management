@@ -80,8 +80,10 @@ static void set_graph_roots(struct graph *g) {
 
     for (i = 0; i < g->sz; i++) {
         n = g->procs[i];
-        if (n->parent_count == 0)
+        if (n->parent_count == 0) {
             g->roots[g->root_count++] = n;
+            n->status = READY;
+        }
     }
 }
 
