@@ -1,26 +1,34 @@
-CC=gcc
-CFLAGS=-I. -g -Wall -Werror -std=c89
-LIBS = -pthread
+TARGET		= processmgt
 
-ODIR = obj
+CC			= gcc
+CFLAGS		= -std=c89 -Wall -I. -g
 
-DEPS = graph.h proc_management.h parser.h utility.h
+LINKER		= gcc -o
+LFLAGS		= -Wall -I. -pthread
 
-_OBJ = main.o graph.o proc_management.o parser.o utility.o
-OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+SRCDIR		= src
+OBJDIR		= obj
+BINDIR		= bin
 
-$(OBJ): | $(ODIR)
+SOURCES		:= $(wildcard $(SRCDIR)/*.c)
+INCLUDES	:= $(wildcard $(SRCDIR)/*.h)
+OBJECTS		:= $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+rm			= rm -f
 
-$(ODIR):
-	@mkdir -p $@
+$(BINDIR)/$(TARGET): $(OBJECTS)
+	@$(LINKER) $@ $(LFLAGS) $(OBJECTS)
+	@echo "Linking complete!"
 
-$(ODIR)/%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+	@$(CC) $(CFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
 
-main: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
-
-.PHONY: clean
-
+.PHONEY: clean
 clean:
-	rm $(OBJ)
+	@$(rm) $(OBJECTS)
+	@echo "Cleanup complete!"
+
+.PHONEY: remove
+remove: clean
+	@$(rm) $(BINDIR)/$(TARGET)
+	@echo "Executable removed!"
