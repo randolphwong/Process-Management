@@ -215,7 +215,8 @@ struct graph *makegraph(const char *filename)
     set_node_parent(proc_graph);
     set_graph_roots(proc_graph);
 
-    fclose(fptr);
+    if ((fclose(fptr)) != 0)
+        handle_error("fclose");
 
     return proc_graph;
 }
